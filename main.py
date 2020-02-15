@@ -11,36 +11,43 @@
 
 from __future__ import print_function
 from flask import Flask, g, jsonify
+import itertools
 import sqlite3
 import os
 import sys
+import json
+
 
 DATABASE = "./hackers.db"
 
 # Create app
 app = Flask(__name__)
 
+
 # check if the database exist, if not create the table and insert a few lines of data
 # if not os.path.exists(DATABASE):
-conn = sqlite3.connect(DATABASE)
-# cur = conn.cursor()
-# cur.execute("CREATE TABLE users (fname TEXT, lname TEXT, age INTEGER);")
-# conn.commit()
-# cur.execute("INSERT INTO users VALUES('Mike', 'Tyson', '40');")
-# cur.execute("INSERT INTO users VALUES('Thomas', 'Jasper', '40');")
-# cur.execute("INSERT INTO users VALUES('Jerry', 'Mouse', '40');")
-# cur.execute("INSERT INTO users VALUES('Peter', 'Pan', '40');")
-# conn.commit()
-# conn.close()
+conn = sqlite3.connect(DATABASE, check_same_thread=False)
+# This enables column access by name: row['column_name']
+conn.row_factory = sqlite3.Row
+
+'''
+need some code here to call a script to create hackers.db if not already created...
+'''
+
+'''
+after creating hackers.db, can then get the 
+'''
 
 
 # helper method to get the database since calls are per thread,
 # and everything function is a new thread when called
-def get_db():
-    db = getattr(g, '_database', None)
-    if db is None:
-        db = g._database = sqlite3.connect(DATABASE)
-    return db
+
+
+# def get_db():
+#     db = getattr(g, '_database', None)
+#     if db is None:
+#         db = g._database = sqlite3.connect(DATABASE)
+#     return db
 
 
 # helper to close
@@ -59,10 +66,30 @@ def start():
 @app.route("/users")
 def index():
     print('before get_db cursor')
-    cur = get_db().cursor()
-    res = cur.execute("select * from users")
-    return jsonify(data=res.fetchall())
-    # return 'check your console :)'
+    cur = conn.cursor()
+    cur.execute("select * from users")
+    row = cur.fetchone()
+
+    for row in cur:
+        rowDict = dict(zip(row.keys(), row))
+        print(rowDict)
+
+    return "done"
+
+    # rowDict = dict(zip(row.keys(), row))
+
+    # return rowDict
+
+    # return jsonify(data=res.fetchall())
+
+    # cur = get_db().cursor(dictionary=True)
+    # rows = cur.execute('''
+    # SELECT * from users
+    # ''').fetchall()
+    # return json.dumps([dict(ix) for ix in rows])  # CREATE JSON
+    # res = cur.execute("select * from users")
+    # return jsonify(data=res.fetchall())
+# return 'check your console :)'
 
 
 if __name__ == "__main__":
