@@ -18,7 +18,7 @@ import sys
 import json
 
 
-DATABASE = "./hackers.db"
+DATABASE = "./hackers2.db"
 
 # Create app
 app = Flask(__name__)
@@ -67,7 +67,7 @@ def start():
 def index():
     print('before get_db cursor')
     cur = conn.cursor()
-    cur.execute("select * from users")
+    cur.execute("select * from users where userID = 1")
     row = cur.fetchone()
 
     for row in cur:
