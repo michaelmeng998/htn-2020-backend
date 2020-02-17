@@ -12,4 +12,12 @@
 
 2. write the 3 user endpoints. use the sqlite database for querying, joining tables, etc
 
-3. idk
+#What types of improvements can be made?
+
+1. adding logging
+
+2. imporving error handling
+
+3. containerization, kubernetes
+
+4. floating point arithmetic for the location query, need to improve this and not have hard coded solution to round the subtraction to 4 decimal places, this is not scalable and will break if more decimal places is added

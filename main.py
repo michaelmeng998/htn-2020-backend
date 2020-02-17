@@ -1,21 +1,13 @@
-# from flask import Flask
-# import sqlite3
-# conn = sqlite3.connect('hackers.db')
-
-# app = Flask(__name__)
-
-
-# @app.route('/')
-# def hello_world():
-#     return 'Hello, World! Michael Meng'
-
-from __future__ import print_function
-from flask import Flask, g, jsonify
-import itertools
+# Imports
+from flask import Flask, g, jsonify, Response, abort, request
 import sqlite3
 import os
 import sys
+
+# good to have imports
 import json
+import ast
+import re
 
 
 DATABASE = "./hackers2.db"
@@ -35,7 +27,7 @@ need some code here to call a script to create hackers.db if not already created
 '''
 
 '''
-after creating hackers.db, can then get the 
+after creating hackers.db, can then get the
 '''
 
 
@@ -57,39 +49,130 @@ def close_connection(exception):
     if db is not None:
         db.close()
 
-
+# API route for the HOME PAGE :))
 @app.route("/")
 def start():
-    return 'start app :)'
+    return ('HOME PAGE :)')
 
+# API route for creating the database from JSON file
+@app.route("/create_db")
+def create_db():
+    return ('SUCESFULLY CREATED THE DATABASE!')
 
-@app.route("/users")
-def index():
-    print('before get_db cursor')
+# ----------------------USERS ENDPOINTS----------------------
+
+# API route handler to get all users information from database
+@app.route("/users", methods=['GET'])
+def get_users():
     cur = conn.cursor()
-    cur.execute("select * from users where userID = 1")
-    row = cur.fetchone()
+    cur.execute('''
+        SELECT company, email, latitude, longitude, name, phone, picture,
+        GROUP_CONCAT('{"name":"' || eventName || '"}') events
+        FROM users AS u
+        LEFT JOIN userEvents AS ue ON u.userID = ue.userID
+        LEFT JOIN events AS e ON ue.eventID = e.eventID
+        GROUP BY u.userID 
+        ''')
+    columns = [column[0] for column in cur.description]
+    results = []
+    for row in cur.fetchall():
+        dictionary = dict(zip(columns[:7], row))
+        # for events column
+        # create dictionary for events:
+        dict_events = []
+        event_list = ast.literal_eval(row['events'])
+        if len(event_list) == 1:
+            dict_events.append(event_list)
+            dictionary["events"] = dict_events
+        else:
+            for event in event_list:
+                dict_events.append(event)
+            dictionary["events"] = dict_events
+        results.append(dictionary)
+    return Response(json.dumps(results),  mimetype='application/json', status=200)
 
-    for row in cur:
-        rowDict = dict(zip(row.keys(), row))
-        print(rowDict)
+# API route handler to get user information with a specific ID
+@app.route("/users/<id>", methods=['GET'])
+def get_user(id):
+    # input validation
+    # regex checks for positive integer, need to implement error check where there is question mark at end of <id>
+    if re.search('^[0-9]*[1-9][0-9]*$', id) == None:
+        abort(400, "'userID' must be positive interger number")
+        # return Response("ERROR: 'userID' must be positive interger number", status=400)
 
-    return "done"
+    cur = conn.cursor()
+    cur.execute('''
+        SELECT company, email, latitude, longitude, name, phone, picture,
+        GROUP_CONCAT('{"name":"' || eventName || '"}') events
+        FROM users AS u 
+        LEFT JOIN userEvents AS ue ON u.userID = ue.userID
+        LEFT JOIN events AS e ON ue.eventID = e.eventID
+        WHERE u.userID = ?
+        GROUP BY u.userID 
+        ''', [id])
+    columns = [column[0] for column in cur.description]
+    results = []
+    for row in cur.fetchall():
+        dictionary = dict(zip(columns[:7], row))
+        # for events column create dictionary for events:
+        dict_events = []
+        event_list = ast.literal_eval(row['events'])
+        if len(event_list) == 1:
+            dict_events.append(event_list)
+            dictionary["events"] = dict_events
+        else:
+            for event in event_list:
+                dict_events.append(event)
+            dictionary["events"] = dict_events
+        results.append(dictionary)
+    # there might be easier way to check for [] results before hand, implement as tech debt later on
+    if results == []:
+        return Response("[], userID does not exist")
 
-    # rowDict = dict(zip(row.keys(), row))
+    return Response(json.dumps(results),  mimetype='application/json')
 
-    # return rowDict
+# API route handler to get user information within a latitude and longitude range
+@app.route("/users/params", methods=['GET'])
+def get_user_in_range():
 
-    # return jsonify(data=res.fetchall())
+    latitude = float(request.args.get('lat', None))
+    longitude = float(request.args.get('long', None))
+    loc_range = float(request.args.get('range', None))
 
-    # cur = get_db().cursor(dictionary=True)
-    # rows = cur.execute('''
-    # SELECT * from users
-    # ''').fetchall()
-    # return json.dumps([dict(ix) for ix in rows])  # CREATE JSON
-    # res = cur.execute("select * from users")
-    # return jsonify(data=res.fetchall())
-# return 'check your console :)'
+    if latitude is None or longitude is None or loc_range is None:
+        abort(400, "ERROR: must specify latitude (lat), longitude (long) and range (range)")
+
+    cur = conn.cursor()
+    cur.execute('''
+        SELECT company, email, latitude, longitude, name, phone, picture,
+        GROUP_CONCAT('{"name":"' || eventName || '"}') events
+        FROM users AS u 
+        LEFT JOIN userEvents AS ue ON u.userID = ue.userID
+        LEFT JOIN events AS e ON ue.eventID = e.eventID
+        WHERE ROUND(ABS(u.latitude - ?), 4) <= ABS(?)  AND ROUND(ABS(u.longitude - ?), 4) <= ABS(?)
+        GROUP BY u.userID 
+        ''', [latitude, loc_range, longitude, loc_range])
+
+    columns = [column[0] for column in cur.description]
+    results = []
+    for row in cur.fetchall():
+        dictionary = dict(zip(columns[:7], row))
+        # for events column
+        # create dictionary for events:
+        dict_events = []
+        event_list = ast.literal_eval(row['events'])
+        if len(event_list) == 1:
+            dict_events.append(event_list)
+            dictionary["events"] = dict_events
+        else:
+            for event in event_list:
+                dict_events.append(event)
+            dictionary["events"] = dict_events
+        results.append(dictionary)
+
+    return Response(json.dumps(results),  mimetype='application/json')
+
+# ----------------------EVENTS ENDPOINTS----------------------
 
 
 if __name__ == "__main__":
