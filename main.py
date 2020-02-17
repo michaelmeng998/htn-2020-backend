@@ -132,15 +132,20 @@ def get_user(id):
     return Response(json.dumps(results),  mimetype='application/json')
 
 # API route handler to get user information within a latitude and longitude range
+# input rule, only put in float point numbers, no letters
 @app.route("/users/params", methods=['GET'])
 def get_user_in_range():
 
-    latitude = float(request.args.get('lat', None))
-    longitude = float(request.args.get('long', None))
-    loc_range = float(request.args.get('range', None))
+    latitude = request.args.get('lat', None)
+    longitude = request.args.get('long', None)
+    loc_range = request.args.get('range', None)
 
     if latitude is None or longitude is None or loc_range is None:
         abort(400, "ERROR: must specify latitude (lat), longitude (long) and range (range)")
+
+    # validation to check for any letters
+    if re.search('[a-zA-Z]', latitude) != None or re.search('[a-zA-Z]', longitude) != None or re.search('[a-zA-Z]', loc_range) != None:
+        abort(400, "ERROR: latitude (lat), longitude (long) and range (range) must be floating point numbers")
 
     cur = conn.cursor()
     cur.execute('''
