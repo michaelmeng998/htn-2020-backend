@@ -31,10 +31,6 @@ after creating hackers.db, can then get the
 '''
 
 
-# helper method to get the database since calls are per thread,
-# and everything function is a new thread when called
-
-
 # def get_db():
 #     db = getattr(g, '_database', None)
 #     if db is None:
@@ -61,7 +57,7 @@ def create_db():
 
 # ----------------------USERS ENDPOINTS----------------------
 
-# API route handler to get all users information from database
+# API route handler to GET all users information from database
 @app.route("/users", methods=['GET'])
 def get_users():
     cur = conn.cursor()
@@ -91,7 +87,7 @@ def get_users():
         results.append(dictionary)
     return Response(json.dumps(results),  mimetype='application/json', status=200)
 
-# API route handler to get user information with a specific ID
+# API route handler to GET user information with a specific ID
 @app.route("/users/<id>", methods=['GET'])
 def get_user(id):
     # input validation
@@ -129,7 +125,7 @@ def get_user(id):
             user_dict["events"] = dict_events
     return Response(json.dumps(user_dict),  mimetype='application/json', status=200)
 
-# API route handler to get user information within a latitude and longitude range
+# API route handler to GET user information within a latitude and longitude range
 @app.route("/users/params", methods=['GET'])
 def get_user_in_range():
 
@@ -159,8 +155,7 @@ def get_user_in_range():
     results = []
     for row in cur.fetchall():
         dictionary = dict(zip(columns[:7], row))
-        # for events column
-        # create dictionary for events:
+        # for events column, create dictionary for events:
         dict_events = []
         event_list = ast.literal_eval(row['events'])
         if len(event_list) == 1:
@@ -176,7 +171,7 @@ def get_user_in_range():
 
 # ----------------------EVENTS ENDPOINTS----------------------
 
-# API route handler to get information for a specific event
+# API route handler to GET information for a specific event
 @app.route("/events/<id>", methods=['GET'])
 def get_event(id):
     # input validation
@@ -215,6 +210,37 @@ def get_event(id):
 
     dictionary["attendees"] = dict_users
     return Response(json.dumps(dictionary),  mimetype='application/json', status=200)
+
+# API route handler to POST
+@app.route("/events/<id>/attendees", methods=['POST'])
+def post_attendee(id):
+    # input validation
+    # regex checks for positive integer, need to implement error check where there is question mark at end of <id>
+    if re.search('^[0-9]*[1-9][0-9]*$', id) == None:
+        abort(400, "ERROR: 'eventID' must be positive interger number")
+
+    # first need to validate the request JSON body
+    userID = request.get_json()
+
+    if 'user_id' not in userID or len(userID) > 1:
+        abort(
+            400, "ERROR: request body must contain single userID with key named 'user_id'")
+
+    if re.search('^[0-9]*[1-9][0-9]*$', userID["user_id"]) == None:
+        abort(400, "ERROR: 'eventID' must be positive interger number")
+
+    # insert eventID, userID mapping into userEvents table
+    cur = conn.cursor()
+
+    try:
+        cur.execute('''
+            INSERT into userEvents (eventID, userID) VALUES (?,?)
+        ''', [id, userID["user_id"]])
+    except sqlite3.IntegrityError:
+        return Response("IntegrityError: user is already attending event", status=200)
+
+    conn.commit()
+    return Response("User has been sucesfully added to event :)", status=200)
 
 
 if __name__ == "__main__":

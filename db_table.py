@@ -38,7 +38,8 @@ CREATE TABLE IF NOT EXISTS [events] (
 c.execute('''
 CREATE TABLE IF NOT EXISTS [userEvents] (
 	[eventID] INTEGER NOT NULL,
-	[userID] INTEGER  NOT NULL
+	[userID] INTEGER  NOT NULL,
+    UNIQUE (eventID, userID)
 );''')
 
 conn.commit()
@@ -58,7 +59,7 @@ query_userID = "SELECT userID FROM users WHERE name = ?"
 query_eventID = "SELECT eventID FROM events WHERE eventName = ?"
 
 # query for mapping
-query_mapping = "INSERT INTO userEvents (eventID, userID) VALUES (?,?)"
+query_mapping = "INSERT OR IGNORE INTO userEvents (eventID, userID) VALUES (?,?)"
 
 
 columns = ['company', 'email', 'latitude',
