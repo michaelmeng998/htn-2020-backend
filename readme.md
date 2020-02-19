@@ -14,6 +14,23 @@
 
 # API routes
 
+## /create_db
+
+```
+/create_db
+```
+
+This api will parse the data.json value and create the corresponding database tables based off of the structure mentioned in the /design_doc/database_design document in this repo.
+**Important** This API should only be hit once during the beggining. If this endpoint is hit multiple times, then the database will have duplicated data and will corrupt query results. (This is tech debt that needs to be addressed as an improvement).
+
+## /drop_db
+
+```
+/drop_db
+```
+
+This api will drop all of the database tables created by the /create_db route (users, events, and userEvents).
+
 ## /users
 
 ```
@@ -77,8 +94,51 @@ An example successfull response is:
 }
 ```
 
-This endpoint gets all users (along with all their information), in a JSON list form.
-an example response is:
+There is error handling implemented where if the id is not a positive integer (like a negative integer or contains letters), then a 400 response with an error message is sent back.
+
+In the case where the userID is a positive integer, but the userID does not exist (like passing in id = 100000), the following response is returned:
+
+```json
+[], eventID does not exist
+```
+
+## /users/params\?lat=<REAL>\&long=<REAL>\&range=<REAL>
+
+```
+/users/params?lat=<REAL>&long=<REAL>&range=<REAL> [GET]
+```
+
+This endpoint takes in 3 parameters (latitude, longitude, and range). Then it find all users whose latitude and longitude are within +/- of the 'range' corresponding to the input 'lat' and 'long' values.
+
+An example successfull response is:
+
+```json
+{
+  "picture": "http://lorempixel.com/200/200/sports/0",
+  "name": "Lori Long",
+  "company": "Bostonic",
+  "longitude": -36.7292,
+  "events": [
+    {
+      "name": "Intro to Android"
+    },
+    {
+      "name": "API Workshop"
+    }
+  ],
+  "phone": "+1 (851) 575-2691",
+  "latitude": 48.9062,
+  "email": "christianmcdaniel@bostonic.com"
+}
+```
+
+There is error handling implemented where if the id is not a positive integer (like a negative integer or contains letters), then a 400 response with an error message is sent back.
+
+In the case where the userID is a positive integer, but the userID does not exist (like passing in id = 100000), the following response is returned:
+
+```json
+[], eventID does not exist
+```
 
 # What types of improvements can be made?
 
