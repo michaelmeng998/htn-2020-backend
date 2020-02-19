@@ -103,7 +103,7 @@ In the case where the userID is a positive integer, but the userID does not exis
 [], eventID does not exist
 ```
 
-## /users/params\?lat=<REAL>\&long=<REAL>\&range=<REAL>
+## /users/params\?lat=\<REAL>\&long=\<REAL>\&range=\<REAL>
 
 ```
 /users/params?lat=<REAL>&long=<REAL>&range=<REAL> [GET]
@@ -172,6 +172,12 @@ WHERE ROUND(ABS(u.latitude - ?), 4) <= ABS(?)  AND ROUND(ABS(u.longitude - ?), 4
 ```
 
 I chose to round the difference between the latitudes and longitudes to 4 decimal places to account for floating point arithmetic inconsistiencies with sqlite's arithemtic operations. I saw that in the json data, the maximum precision of all latitude and longitude values were to 4 decimal places.
+
+## /events/\<id>
+
+```
+/events/<id> [GET]
+```
 
 # What types of improvements can be made?
 
