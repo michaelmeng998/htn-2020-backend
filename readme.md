@@ -1,10 +1,10 @@
-# Hack the North 2020 Backend
+# Hack the North 2020 Backend Challenge
 
 :rice_cracker::rice_cracker::rice_cracker::rice_cracker::rice_cracker::rice_cracker::rice_cracker::rice_cracker::rice_cracker:
 
 (This repo contains a sqlite + Flask install. The current directory is mounted as a volume under `/home/api` so that you do not have to rebuild the image every time. Building and running the image will start the Flask server on port 5000.)
 
-#Documenting Design Decisions
+# Documenting Design Decisions
 
 1. For **database design descisions**, look at the database_design word document in the **/design_doc directory in this repo**
 
@@ -12,7 +12,7 @@
 
 3. I have added in a /create_db and /drop_db route for ease of creating and dropping the database tables via HTTP requests
 
-#API routes
+# API routes
 
 ```
 /users [GET]
@@ -52,7 +52,7 @@ an example response is:
 This endpoint gets all users (along with all their information), in a JSON list form.
 an example response is:
 
-#What types of improvements can be made?
+# What types of improvements can be made?
 
 1. adding logging
 
