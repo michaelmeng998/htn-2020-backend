@@ -1,6 +1,5 @@
-from __future__ import print_function
-# from flask import Flask, g, jsonify
-import itertools
+# THIS IS A PLAIN SCRIPT THAT CAN BE RUN TO CREATE THE DATABASE TABLES, NOT NEEDED FOR DEMO
+
 import sqlite3
 import os
 import sys

@@ -10,54 +10,122 @@ import ast
 import re
 
 
-DATABASE = "./hackers2.db"
+DATABASE = "./hackers.db"
 
-# Create app
 app = Flask(__name__)
 
-
-# check if the database exist, if not create the table and insert a few lines of data
-# if not os.path.exists(DATABASE):
 conn = sqlite3.connect(DATABASE, check_same_thread=False)
-# This enables column access by name: row['column_name']
 conn.row_factory = sqlite3.Row
 
-'''
-need some code here to call a script to create hackers.db if not already created...
-'''
-
-'''
-after creating hackers.db, can then get the
-'''
+# ----------------------USEFUL ENDPOINTS----------------------
 
 
-# def get_db():
-#     db = getattr(g, '_database', None)
-#     if db is None:
-#         db = g._database = sqlite3.connect(DATABASE)
-#     return db
-
-
-# helper to close
-@app.teardown_appcontext
-def close_connection(exception):
-    db = getattr(g, '_database', None)
-    if db is not None:
-        db.close()
-
-# API route for the HOME PAGE :))
+# API ROUTE for the HOME PAGE
 @app.route("/")
 def start():
     return ('HOME PAGE :)')
 
-# API route for creating the database from JSON file
+
+# API ROUTE for creating database tables from JSON file data.json
 @app.route("/create_db")
 def create_db():
-    return ('SUCESFULLY CREATED THE DATABASE!')
+    database = json.load(open('data.json'))
+    c = conn.cursor()
+
+    # create db table for users
+    c.execute('''
+    CREATE TABLE IF NOT EXISTS [users] (
+        [userID] INTEGER PRIMARY KEY,
+        [company] TEXT NOT NULL,
+        [email] TEXT NOT NULL,
+        [latitude] REAL NOT NULL,
+        [longitude] REAL NOT NULL,
+        [name] TEXT NOT NULL,
+        [phone] TEXT NOT NULL,
+        [picture] TEXT NOT NULL
+    );''')
+
+    # create db table for events
+    c.execute('''
+    CREATE TABLE IF NOT EXISTS [events] (
+        [eventID] INTEGER PRIMARY KEY,
+        [eventName] TEXT NOT NULL UNIQUE
+    );''')
+
+    # create db table for user to event mappings
+    c.execute('''
+    CREATE TABLE IF NOT EXISTS [userEvents] (
+        [eventID] INTEGER NOT NULL,
+        [userID] INTEGER  NOT NULL,
+        UNIQUE (eventID, userID)
+    );''')
+
+    conn.commit()
+
+    # query for users table
+    query_insert_users = "INSERT OR IGNORE INTO users (company, email, latitude, longitude, name, phone, picture) VALUES (?,?,?,?,?,?,?)"
+
+    # query for events table
+    query_insert_events = "INSERT OR IGNORE INTO events (eventName) VALUES (?)"
+    # query_events = "INSERT INTO events (eventName) VALUES ('test event')"
+
+    # query for userID
+    query_userID = "SELECT userID FROM users WHERE name = ?"
+
+    # query for eventID
+    query_eventID = "SELECT eventID FROM events WHERE eventName = ?"
+
+    # query for mapping
+    query_mapping = "INSERT OR IGNORE INTO userEvents (eventID, userID) VALUES (?,?)"
+
+    columns = ['company', 'email', 'latitude',
+               'longitude', 'name', 'phone', 'picture']
+
+    for data in database:
+        # insert into users table
+        keys = tuple(data[c] for c in columns)
+        cur = conn.cursor()
+        cur.execute(query_insert_users, keys)
+
+        # insert into events table
+        for event in data["events"]:
+            cur.execute(query_insert_events, (event["name"],))
+
+            # for every event, need to link userID with the eventID and store into userEvents table
+            # need to get userID with a query, then store with corresponding eventID
+            temp1 = cur.execute(query_userID, (data["name"],))
+            userID, = temp1.fetchone()
+            temp2 = cur.execute(query_eventID, (event["name"],))
+            eventID, = (temp2.fetchone())
+            cur.execute(query_mapping, (eventID, userID))
+
+    conn.commit()
+    return ('SUCESFULLY CREATED THE DATABASE TABLES!')
+
+
+# API ROUTE for dropping all hacker database tables
+@app.route("/drop_db")
+def drop_db():
+    c = conn.cursor()
+
+    # drop users table
+    c.execute('''
+    DROP TABLE IF EXISTS users;''')
+
+    # drop events table
+    c.execute('''
+    DROP TABLE IF EXISTS events;''')
+
+    # drop userEvents table
+    c.execute('''
+    DROP TABLE IF EXISTS userEvents;''')
+
+    return ("SUCESFULLY DROPPED DATABASE TABLES!")
 
 # ----------------------USERS ENDPOINTS----------------------
 
-# API route handler to GET all users information from database
+
+# API ROUTE HANDLER to GET all users information from database
 @app.route("/users", methods=['GET'])
 def get_users():
     cur = conn.cursor()
@@ -73,10 +141,10 @@ def get_users():
     results = []
     for row in cur.fetchall():
         dictionary = dict(zip(columns[:7], row))
-        # for events column
-        # create dictionary for events:
+        # for events column, create dictionary for events:
         dict_events = []
         event_list = ast.literal_eval(row['events'])
+        # edge case: handling case where user is only attending 1 event
         if len(event_list) == 1:
             dict_events.append(event_list)
             dictionary["events"] = dict_events
@@ -87,11 +155,12 @@ def get_users():
         results.append(dictionary)
     return Response(json.dumps(results),  mimetype='application/json', status=200)
 
-# API route handler to GET user information with a specific ID
+
+# API ROUTE HANDLER to GET user information with a specific ID
 @app.route("/users/<id>", methods=['GET'])
 def get_user(id):
     # input validation
-    # regex checks for positive integer, need to implement error check where there is question mark at end of <id>
+    # regex checks if id is a positive integer number
     if re.search('^[0-9]*[1-9][0-9]*$', id) == None:
         abort(400, "ERROR: 'userID' must be positive interger number")
 
@@ -113,7 +182,7 @@ def get_user(id):
     columns = [column[0] for column in cur.description]
     for row in all_rows:
         user_dict = dict(zip(columns[:7], row))
-        # for events column create user_dict for events:
+        # for events column, create user_dict for events:
         dict_events = []
         event_list = ast.literal_eval(row['events'])
         if len(event_list) == 1:
@@ -125,7 +194,8 @@ def get_user(id):
             user_dict["events"] = dict_events
     return Response(json.dumps(user_dict),  mimetype='application/json', status=200)
 
-# API route handler to GET user information within a latitude and longitude range
+
+# API ROUTE HANDLER to GET user information within a latitude and longitude range
 @app.route("/users/params", methods=['GET'])
 def get_user_in_range():
 
@@ -133,6 +203,7 @@ def get_user_in_range():
     longitude = request.args.get('long', None)
     loc_range = request.args.get('range', None)
 
+    # validation to check if latitude, longitude, and range are all passed in
     if latitude is None or longitude is None or loc_range is None:
         abort(400, "ERROR: must specify latitude (lat), longitude (long) and range (range)")
 
@@ -171,11 +242,11 @@ def get_user_in_range():
 
 # ----------------------EVENTS ENDPOINTS----------------------
 
-# API route handler to GET information for a specific event
+# API ROUTE HANDLER to GET information for a specific event
 @app.route("/events/<id>", methods=['GET'])
 def get_event(id):
     # input validation
-    # regex checks for positive integer, need to implement error check where there is question mark at end of <id>
+    # regex checks if id is a positive integer number
     if re.search('^[0-9]*[1-9][0-9]*$', id) == None:
         abort(400, "ERROR: 'eventID' must be positive interger number")
 
@@ -188,6 +259,7 @@ def get_event(id):
         WHERE e.eventID = ?
         ''', [id])
 
+    # check if query returned nothing, means eventID does not exist
     all_rows = cur.fetchall()
     if all_rows == []:
         return Response("[], eventID does not exist", status=200)
@@ -201,7 +273,6 @@ def get_event(id):
 
     for row in all_rows:
         # for every row, need to extract user objects in dict form, and append to a list that will be under "attendees" key in dictionary
-        # row_literal = ast.literal_eval(row)
         row_slice = []
         for i in range(2, 9):
             row_slice.append(row[i])
@@ -211,11 +282,11 @@ def get_event(id):
     dictionary["attendees"] = dict_users
     return Response(json.dumps(dictionary),  mimetype='application/json', status=200)
 
-# API route handler to POST
+# API ROUTE HANDLER to POST attendees to an event
 @app.route("/events/<id>/attendees", methods=['POST'])
 def post_attendee(id):
     # input validation
-    # regex checks for positive integer, need to implement error check where there is question mark at end of <id>
+    # regex checks if id is a positive integer
     if re.search('^[0-9]*[1-9][0-9]*$', id) == None:
         abort(400, "ERROR: 'eventID' must be positive interger number")
 
@@ -232,6 +303,14 @@ def post_attendee(id):
     # insert eventID, userID mapping into userEvents table
     cur = conn.cursor()
 
+    # catch case where eventID does not exist
+    cur.execute('''
+        SELECT * from userEvents WHERE eventID = ?
+    ''', [id])
+    fetch = cur.fetchall()
+    if fetch == []:
+        return Response("eventID does not exist", status=200)
+
     try:
         cur.execute('''
             INSERT into userEvents (eventID, userID) VALUES (?,?)
@@ -244,10 +323,4 @@ def post_attendee(id):
 
 
 if __name__ == "__main__":
-    """
-        Use python sqlite3 to create a local database, insert some basic data and then
-        display the data using the flask templating.
-
-        http://flask.pocoo.org/docs/0.12/patterns/sqlite3/
-    """
     app.run(debug=True)

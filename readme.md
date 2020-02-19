@@ -6,11 +6,51 @@
 
 #Documenting Design Decisions
 
-1. setting up the sqlite database, need to parse JSON file into sqlite
+1. For **database design descisions**, look at the database_design word document in the **/design_doc directory in this repo**
 
-1.1) What's the best way to set up the table? What kind of relationships do we have? etc?
+2. All API's are in one main.py file for simplicity sake, the db_table.py file is not necessary for the API, but it shows the script that creates the hackers database
 
-2. write the 3 user endpoints. use the sqlite database for querying, joining tables, etc
+3. I have added in a /create_db and /drop_db route for ease of creating and dropping the database tables via HTTP requests
+
+#API routes
+
+```
+/users [GET]
+```
+
+This endpoint gets all users (along with all their information), in a JSON list form.
+an example response is:
+
+```json
+[
+    {
+        "picture": "http://lorempixel.com/200/200/sports/8",
+        "name": "Jenna Luna",
+        "company": "Slambda",
+        "longitude": -34.7754,
+        "events": [
+            {
+                "name": "Intro to Android"
+            },
+            {
+                "name": "Cup Stacking"
+            },
+            {
+                "name": "Pitch Workshop"
+            }
+        ],
+        "phone": "+1 (913) 504-2495",
+        "latitude": 48.4862,
+        "email": "elizawright@slambda.com"
+    },
+    .
+    .
+    .
+]
+```
+
+This endpoint gets all users (along with all their information), in a JSON list form.
+an example response is:
 
 #What types of improvements can be made?
 
