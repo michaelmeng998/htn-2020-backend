@@ -21,7 +21,8 @@
 ```
 
 This api will parse the data.json value and create the corresponding database tables based off of the structure mentioned in the /design_doc/database_design document in this repo.
-**Important** This API should only be hit once during the beggining. If this endpoint is hit multiple times, then the database will have duplicated data and will corrupt query results. (This is tech debt that needs to be addressed as an improvement).
+
+**Important This API should only be hit once during the beggining. If this endpoint is hit multiple times, then the database will have duplicated data and will corrupt query results. (This is tech debt that needs to be addressed as an improvement).**
 
 ## /drop_db
 
@@ -39,7 +40,7 @@ This api will drop all of the database tables created by the /create_db route (u
 
 This endpoint gets all users in a JSON list form. The user objects include picture url, name, company, longitude, latitude, phone, email, and all of their attended events.
 
-An example successfull response is:
+An example successful response is:
 
 ```json
 [
@@ -72,7 +73,7 @@ An example successfull response is:
 
 This endpoint gets a specific user with certain <id> from the database. The user object includes picture url, name, company, longitude, latitude, phone, email, and all of their attended events.
 
-An example successfull response is:
+An example successful response for id = 1212 :
 
 ```json
 {
@@ -108,37 +109,69 @@ In the case where the userID is a positive integer, but the userID does not exis
 /users/params?lat=<REAL>&long=<REAL>&range=<REAL> [GET]
 ```
 
-This endpoint takes in 3 parameters (latitude, longitude, and range). Then it find all users whose latitude and longitude are within +/- of the 'range' corresponding to the input 'lat' and 'long' values.
+This endpoint takes in 3 parameters (latitude, longitude, and range). Then it finds and returns all user objects whose latitude and longitude are within +/- of the 'range' corresponding to the input 'lat' and 'long' values.
 
-An example successfull response is:
+Given the following request:
 
-```json
-{
-  "picture": "http://lorempixel.com/200/200/sports/0",
-  "name": "Lori Long",
-  "company": "Bostonic",
-  "longitude": -36.7292,
-  "events": [
-    {
-      "name": "Intro to Android"
-    },
-    {
-      "name": "API Workshop"
-    }
-  ],
-  "phone": "+1 (851) 575-2691",
-  "latitude": 48.9062,
-  "email": "christianmcdaniel@bostonic.com"
-}
+```
+http://localhost:5000/users/params?lat=48.4862&long=-34.7754&range=0.088
 ```
 
-There is error handling implemented where if the id is not a positive integer (like a negative integer or contains letters), then a 400 response with an error message is sent back.
-
-In the case where the userID is a positive integer, but the userID does not exist (like passing in id = 100000), the following response is returned:
+The successful response would be in the form:
 
 ```json
-[], eventID does not exist
+[
+  {
+    "picture": "http://lorempixel.com/200/200/sports/8",
+    "name": "Jenna Luna",
+    "company": "Slambda",
+    "longitude": -34.7754,
+    "events": [
+      {
+        "name": "Intro to Android"
+      },
+      {
+        "name": "Cup Stacking"
+      }
+    ],
+    "phone": "+1 (913) 504-2495",
+    "latitude": 48.4862,
+    "email": "elizawright@slambda.com"
+  },
+  {
+    "picture": "http://lorempixel.com/200/200/sports/6",
+    "name": "Rhea Mills",
+    "company": "Irack",
+    "longitude": -34.7397,
+    "events": [
+      {
+        "name": "Intro to Android"
+      },
+      {
+        "name": "Mochi Ice Cream Balls"
+      },
+      {
+        "name": "Bubble Soccer"
+      }
+    ],
+    "phone": "+1 (882) 436-3069",
+    "latitude": 48.5742,
+    "email": "wilsonmaxwell@irack.com"
+  }
+]
 ```
+
+There is also error handling implemented. For instance, if any of the inputs are missing, a 400 status code with a message is returned. If any of the inputs contain alphabetical letters (invalid input) a 400 status code with a message is returned.
+
+In the case where no users within range are found, an empty list [] is returned
+
+One design choice implemented here was in the search query WHERE clause:
+
+```sql
+WHERE ROUND(ABS(u.latitude - ?), 4) <= ABS(?)  AND ROUND(ABS(u.longitude - ?), 4) <= ABS(?)
+```
+
+I chose to round the difference between the latitudes and longitudes to 4 decimal places to account for floating point arithmetic inconsistiencies with sqlite's arithemtic operations. I saw that in the json data, the maximum precision of all latitude and longitude values were to 4 decimal places.
 
 # What types of improvements can be made?
 
