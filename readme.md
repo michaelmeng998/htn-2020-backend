@@ -71,9 +71,9 @@ An example successful response is:
 /users/<id> [GET]
 ```
 
-This endpoint gets a specific user with certain <id> from the database. The user object includes picture url, name, company, longitude, latitude, phone, email, and all of their attended events.
+This endpoint gets a specific user with a certain \<id> from the database. The user object includes picture url, name, company, longitude, latitude, phone, email, and all of their attended events.
 
-An example successful response for user <id> = 1212 :
+An example successful response for user \<id> = 1212 :
 
 ```json
 {
@@ -179,9 +179,9 @@ I chose to round the difference between the latitudes and longitudes to 4 decima
 /events/<id> [GET]
 ```
 
-This endpoint gets all user objects associated with the event <id>. The response is a json object with eventName, eventID, and an attendees list of user objects. Every user object will only contain the picture url, name, company, longitude, phone, latitude, and email.
+This endpoint gets all user objects associated with the event \<id>. The response is a json object with eventName, eventID, and an attendees list of user objects. Every user object will only contain the picture url, name, company, longitude, phone, latitude, and email.
 
-An example successful response for event <id> = 1 :
+An example successful response for event \<id> = 1 :
 
 ```json
 {
