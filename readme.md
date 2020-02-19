@@ -14,6 +14,8 @@
 
 # API routes
 
+## /users
+
 ```
 /users [GET]
 ```
@@ -44,6 +46,8 @@ An example successfull response is:
     ...
 ]
 ```
+
+## /users/<id>
 
 ```
 /users/<id> [GET]
