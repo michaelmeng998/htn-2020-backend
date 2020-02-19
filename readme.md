@@ -18,8 +18,9 @@
 /users [GET]
 ```
 
-This endpoint gets all users (along with all their information), in a JSON list form.
-an example response is:
+This endpoint gets all users in a JSON list form. The user objects include picture url, name, company, longitude, latitude, phone, email, and all of their attended events.
+
+An example successfull response is:
 
 ```json
 [
@@ -34,19 +35,42 @@ an example response is:
             },
             {
                 "name": "Cup Stacking"
-            },
-            {
-                "name": "Pitch Workshop"
             }
         ],
         "phone": "+1 (913) 504-2495",
         "latitude": 48.4862,
         "email": "elizawright@slambda.com"
     },
-    .
-    .
-    .
+    ...
 ]
+```
+
+```
+/users/<id> [GET]
+```
+
+This endpoint gets a specific user with certain <id> from the database. The user object includes picture url, name, company, longitude, latitude, phone, email, and all of their attended events.
+
+An example successfull response is:
+
+```json
+{
+  "picture": "http://lorempixel.com/200/200/sports/0",
+  "name": "Lori Long",
+  "company": "Bostonic",
+  "longitude": -36.7292,
+  "events": [
+    {
+      "name": "Intro to Android"
+    },
+    {
+      "name": "API Workshop"
+    }
+  ],
+  "phone": "+1 (851) 575-2691",
+  "latitude": 48.9062,
+  "email": "christianmcdaniel@bostonic.com"
+}
 ```
 
 This endpoint gets all users (along with all their information), in a JSON list form.
