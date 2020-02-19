@@ -47,7 +47,7 @@ An example successfull response is:
 ]
 ```
 
-## /users/<id>
+## /users/\<id>
 
 ```
 /users/<id> [GET]
