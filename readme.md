@@ -22,7 +22,7 @@
 
 This api will parse the data.json value and create the corresponding database tables based off of the structure mentioned in the /design_doc/database_design document in this repo.
 
-**Important This API should only be hit once during the beggining. If this endpoint is hit multiple times, then the database will have duplicated data and will corrupt query results. (This is tech debt that needs to be addressed as an improvement).**
+**IMPORTANT: This API should only be hit once during the beggining. If this endpoint is hit multiple times, then the database will have duplicated data and will corrupt query results. (This is tech debt that needs to be addressed as an improvement).**
 
 ## /drop_db
 
@@ -179,7 +179,7 @@ I chose to round the difference between the latitudes and longitudes to 4 decima
 /events/<id> [GET]
 ```
 
-This endpoint gets all user objects associated with the event <id>. The user objects are returned to only show
+This endpoint gets all user objects associated with the event <id>. The response is a json object with eventName, eventID, and an attendees list of user objects. Every user object will only contain the picture url, name, company, longitude, phone, latitude, and email.
 
 An example successful response for event <id> = 1 :
 
@@ -209,6 +209,14 @@ In the case where the eventID is a positive integer, but the eventID does not ex
 ```json
 [], eventID does not exist
 ```
+
+## /events/\<id>/attendees
+
+```
+/events/<id>/attendees [POST]
+```
+
+This endpoint allows the ability to add a user to an event.
 
 # What types of improvements can be made?
 
