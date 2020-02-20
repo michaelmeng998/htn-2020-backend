@@ -47,7 +47,7 @@ This api will drop all of the database tables created by the /create_db route (u
 
 This endpoint gets all users in a JSON list form. The user objects include picture url, name, company, longitude, latitude, phone, email, and all of their attended events.
 
-An example successful response is: (the JSON keys may be in different order for your machine, this is explained in the improvements section of this README)
+An example successful response is: **(the JSON keys may be in different order for your machine, this is explained in the improvements section of this README)**
 
 ```json
 [
@@ -80,7 +80,7 @@ An example successful response is: (the JSON keys may be in different order for 
 
 This endpoint gets a specific user with a certain \<id> from the database. The user object includes picture url, name, company, longitude, latitude, phone, email, and all of their attended events.
 
-An example successful response for user \<id> = 1212 : (the JSON keys may be in different order for your machine, this is explained in the improvements section of this README)
+An example successful response for user \<id> = 1212 : **(the JSON keys may be in different order for your machine, this is explained in the improvements section of this README)**
 
 ```json
 {
@@ -120,7 +120,7 @@ Given the following request:
 http://localhost:5000/users/params?lat=48.4862&long=-34.7754&range=0.088
 ```
 
-The successful response would be in the form: (the JSON keys may be in different order for your machine, this is explained in the improvements section of this README)
+The successful response would be in the form: **(the JSON keys may be in different order for your machine, this is explained in the improvements section of this README)**
 
 ```json
 [
@@ -184,7 +184,7 @@ I chose to round the difference between the latitudes and longitudes to 4 decima
 
 This endpoint gets all user objects associated with the event \<id>. The response is a json object with eventName, eventID, and an attendees list of user objects. Every user object will only contain the picture url, name, company, longitude, phone, latitude, and email.
 
-An example successful response for event \<id> = 1 : (the JSON keys may be in different order for your machine, this is explained in the improvements section of this README)
+An example successful response for event \<id> = 1 : **(the JSON keys may be in different order for your machine, this is explained in the improvements section of this README)**
 
 ```json
 {
@@ -251,6 +251,6 @@ IntegrityError: user is already attending event
 
 5. adding unit tests to each route (for time sake, I did not add any unit tests to the API's. I did mostly manual testing)
 
-6. adding in support to format the order of the JSON response. the JSON responses are essentially created using python dictionaries, which are hard to define an order when they are being zipped, packaged, and json.dump into a JSON object to be returned as a response. This does not impose a big issue to users consuming the API assuming they are referencing objects in the JSON based of their 'keys', however it makes it hard to read the JSON responses for testing purposes.
+6. adding in support to format the order of the JSON response. the JSON responses are essentially created using python dictionaries, which are hard to define an order when they are being zipped, packaged, and json.dump into a JSON object to be returned as a response. This randomness will cause issues where the JSON keys are in random order for different container instances. This does not impose a big issue to users consuming the API assuming they are referencing objects in the JSON based off their 'keys', however it makes it hard to read the JSON responses for testing purposes.
 
 7. if the API's will be experiencing high loads, I would containerize and deploy the API's into kubernetes clusters. This would provide load balancing, pod re-creation, and other features that would help support the activity of the API'.
