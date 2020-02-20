@@ -177,7 +177,7 @@ def get_user(id):
 
     all_rows = cur.fetchall()
     if all_rows == []:
-        return Response("[], eventID does not exist", status=200)
+        return Response('[]', status=200)
 
     columns = [column[0] for column in cur.description]
     for row in all_rows:
@@ -262,7 +262,7 @@ def get_event(id):
     # check if query returned nothing, means eventID does not exist
     all_rows = cur.fetchall()
     if all_rows == []:
-        return Response("[], eventID does not exist", status=200)
+        return Response("[]", status=200)
 
     dictionary = {}
     dict_users = []
@@ -290,17 +290,6 @@ def post_attendee(id):
     if re.search('^[0-9]*[1-9][0-9]*$', id) == None:
         abort(400, "ERROR: 'eventID' must be positive interger number")
 
-    # first need to validate the request JSON body
-    userID = request.get_json()
-
-    if 'user_id' not in userID or len(userID) > 1:
-        abort(
-            400, "ERROR: request body must contain single userID with key named 'user_id'")
-
-    if re.search('^[0-9]*[1-9][0-9]*$', userID["user_id"]) == None:
-        abort(400, "ERROR: 'eventID' must be positive interger number")
-
-    # insert eventID, userID mapping into userEvents table
     cur = conn.cursor()
 
     # catch case where eventID does not exist
@@ -310,6 +299,24 @@ def post_attendee(id):
     fetch = cur.fetchall()
     if fetch == []:
         return Response("eventID does not exist", status=200)
+
+    # first need to validate the request JSON body
+    userID = request.get_json()
+
+    if 'user_id' not in userID or len(userID) > 1:
+        abort(
+            400, "ERROR: request body must contain single userID with key named 'user_id'")
+
+    if re.search('^[0-9]*[1-9][0-9]*$', userID['user_id']) == None:
+        abort(400, "ERROR: 'user_id' must be positive interger number")
+
+    # catch case where userID does not exist
+    cur.execute('''
+        SELECT * from users where userID = ?
+    ''', [userID['user_id']])
+    fetch = cur.fetchall()
+    if fetch == []:
+        return Response("userID does not exist", status=200)
 
     try:
         cur.execute('''

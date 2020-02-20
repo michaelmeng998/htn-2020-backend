@@ -12,6 +12,13 @@
 
 3. I have added in a /create_db and /drop_db route for ease of creating and dropping the database tables via HTTP requests
 
+# HOW TO RUN THE API
+
+1. Open up the Docker desktop app, sign in
+2. in the base of this repo ,run docker-compose up
+3. hit the http://localhost:5000/create_db endpoint once (would recommend using something like postman for testing)
+4. start testing out the API :))
+
 # API routes
 
 ## /create_db
@@ -97,11 +104,7 @@ An example successful response for user \<id> = 1212 :
 
 There is error handling implemented where if the id is not a positive integer (like a negative integer or contains letters), then a 400 response with an error message is sent back.
 
-In the case where the userID is a positive integer, but the userID does not exist (like passing in id = 100000), the following response is returned:
-
-```json
-[], userID does not exist
-```
+In the case where the userID is a positive integer, but the userID does not exist (like passing in id = 100000), an empty list [] is returned.
 
 ## /users/params\?lat=\<REAL>\&long=\<REAL>\&range=\<REAL>
 
@@ -204,11 +207,7 @@ An example successful response for event \<id> = 1 :
 
 There is error handling implemented where if the id is not a positive integer (like a negative integer or contains letters), then a 400 response with an error message is sent back.
 
-In the case where the eventID is a positive integer, but the eventID does not exist (like passing in id = 100000), the following response is returned:
-
-```json
-[], eventID does not exist
-```
+In the case where the eventID is a positive integer, but the eventID does not exist (like passing in id = 100000), an empty list [] is returned.
 
 ## /events/\<id>/attendees
 
@@ -226,9 +225,9 @@ Furthermore, the userID is defined in the form:
 }
 ```
 
-the key must be named 'user_id' and the endpoint can only add 1 userID at a time to an event. If any of these restrictions are broken, a 400 status code is returned along with an error message.
+the key must be named 'user_id' and the endpoint can only add 1 user_id at a time to an event. Also, the user_id should be a positive integer number. If any of these restrictions are broken, a 400 status code is returned along with an error message. If the user_id does not exist in the database, then the api will return a message saying so.
 
-When the request to add the user to the event is succesful, then the following success message is returned:
+When the request to add the user to the event is successful, then the following success message is returned:
 
 ```
 User has been sucesfully added to event :)
@@ -242,10 +241,16 @@ IntegrityError: user is already attending event
 
 # What types of improvements can be made?
 
-1. adding logging
+1. number one improvement would be to utilize a primary key / foreign key database design. This would help with the users/\<id>/attendees POST route in terms of dealing with userID's and eventID's that don't exist in the database. Right now, I am running query's to check the existence of those entities in the DB, but a primary/foreign key constraint would be a much more efficient method to tackle this issue.
 
-2. imporving error handling
+2. improving error handling, being more specific, catching more edge cases
 
-3. containerization, kubernetes
+3. floating point arithmetic for the location query, need to improve this and not have hard coded solution to round the subtraction to 4 decimal places, this is not scalable and will not account for further accuracies. Also, the floating point arithmetic should be defined and referenced from the problem statement
 
-4. floating point arithmetic for the location query, need to improve this and not have hard coded solution to round the subtraction to 4 decimal places, this is not scalable and will not account for further accuracies. Also, the floating point arithmetic should be defined and referenced from the problem statement
+4. fix the error so hitting the create_db endpoint multiple times will not add duplicate data
+
+5. adding unit tests to each route (for time sake, I did not add any unit tests to the API's. I did mostly manual testing)
+
+6. adding in support to format the order of the JSON response. the JSON responses are created using python dictionaries, which are hard to define an order when they are being zipped and packaged into a dict object to be returned as a response
+
+7. if the API's will be experiencing high loads, I would containerize and deploy the API's into kubernetes clusters. This would provide load balancing, pod re-creation, and other features that would help support the activity of the API'.
