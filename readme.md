@@ -216,7 +216,29 @@ In the case where the eventID is a positive integer, but the eventID does not ex
 /events/<id>/attendees [POST]
 ```
 
-This endpoint allows the ability to add a user to an event.
+This endpoint allows the ability to add a user to an event. The \<id> is the eventID that you want to add a user to. The \<id> must be a positive integer number (a 400 status code and error message is returned if the id is negative or contains letters). Also, if the eventID does not exist (like an eventID = 10000), a error message is returned saying so.
+
+Furthermore, the userID is defined in the form:
+
+```json
+{
+  "user_id": "1"
+}
+```
+
+the key must be named 'user_id' and the endpoint can only add 1 userID at a time to an event. If any of these restrictions are broken, a 400 status code is returned along with an error message.
+
+When the request to add the user to the event is succesful, then the following success message is returned:
+
+```
+User has been sucesfully added to event :)
+```
+
+If the user is already attending the event, then the endpoint will return the following message:
+
+```
+IntegrityError: user is already attending event
+```
 
 # What types of improvements can be made?
 
